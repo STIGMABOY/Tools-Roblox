@@ -185,46 +185,75 @@ class handler(BaseHTTPRequestHandler):
             self.send_response(404)
             self.end_headers()
     
-    def do_POST(self):
-        """Handle POST requests"""
-        path = self.path
-        
-        if path == '/api/admin/login':
-            # Admin login
-            try:
-                content_length = int(self.headers['Content-Length'])
-                post_data = self.rfile.read(content_length)
-                data = json.loads(post_data)
+def do_POST(self):
+    """Handle POST requests"""
+    path = self.path
+    
+    if path == '/api/admin/login' or path == '/api/admin/login/':
+        # Admin login endpoint
+        try:
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data)
+            
+            username = data.get('username', '').strip().lower()
+            password = data.get('password', '')
+            
+            print(f"[ADMIN LOGIN ATTEMPT] Username: {username}")
+            
+            # Check admin credentials
+            if username == 'admin' and password == ADMIN_CONFIG['password']:
+                # Generate session token
+                token = generate_token()
+                SESSIONS[token] = {
+                    'username': 'admin',
+                    'role': 'admin',
+                    'login_time': time.time(),
+                    'expiry': time.time() + 86400  # 24 hours
+                }
                 
-                username = data.get('username', '').strip().lower()
-                password = data.get('password', '')
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
                 
-                # Check admin credentials
-                if username == 'admin' and password == ADMIN_CONFIG['password']:
-                    # Generate session token
-                    token = generate_token()
-                    SESSIONS[token] = {
+                response = {
+                    'success': True,
+                    'message': 'Login successful',
+                    'token': token,
+                    'user': {
                         'username': 'admin',
                         'role': 'admin',
-                        'login_time': time.time(),
-                        'expiry': time.time() + 86400  # 24 hours
+                        'site_title': ADMIN_CONFIG['site_title']
                     }
-                    
-                    self.send_response(200)
-                    self.send_header('Content-type', 'application/json')
-                    self.send_header('Access-Control-Allow-Origin', '*')
-                    self.end_headers()
-                    
-                    self.wfile.write(json.dumps({
-                        'success': True,
-                        'message': 'Login successful',
-                        'token': token,
-                        'user': {
-                            'username': 'admin',
-                            'role': 'admin',
-                            'site_title': ADMIN_CONFIG['site_title']
-                        }
-                    }).encode())
+                }
+                
+                print(f"[ADMIN LOGIN SUCCESS] Token generated: {token[:10]}...")
+                self.wfile.write(json.dumps(response).encode())
+                
+            else:
+                print(f"[ADMIN LOGIN FAILED] Invalid credentials for: {username}")
+                self.send_response(401)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                
+                self.wfile.write(json.dumps({
+                    'success': False,
+                    'error': 'Invalid credentials'
+                }).encode())
+                
+        except Exception as e:
+            print(f"[ADMIN LOGIN ERROR] {e}")
+            self.send_response(500)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            
+            self.wfile.write(json.dumps({
+                'success': False,
+                'error': str(e)
+            }).encode())
                 else:
                     self.send_unauthorized('Invalid credentials')
                     
@@ -483,4 +512,5 @@ class handler(BaseHTTPRequestHandler):
 # INITIALIZATION
 # ============================================
 print("[ADMIN API] Admin panel API initialized")
+
 print(f"[ADMIN API] Total users in database: {len(USER_DB)}")
