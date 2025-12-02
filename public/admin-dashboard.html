@@ -443,4 +443,187 @@
     });
     
     // Logout
-    document.getElementById('logoutBtn').add
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+        localStorage.removeItem(ADMIN_TOKEN_KEY);
+        adminToken = null;
+        showToast('Logged out successfully', 'info');
+        showLoginScreen();
+    });
+    
+    // Refresh data
+    document.getElementById('refreshData').addEventListener('click', function() {
+        const btn = this;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+        
+        loadDashboardData().then(() => {
+            btn.innerHTML = originalText;
+            showToast('Data refreshed successfully', 'success');
+        });
+    });
+    
+    // Search users
+    document.getElementById('searchUsers').addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const rows = document.querySelectorAll('#usersTable tr');
+        
+        rows.forEach(row => {
+            const username = row.cells[0]?.textContent?.toLowerCase() || '';
+            if (username.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+    
+    // Renew user function
+    async function renewUser(username) {
+        const days = prompt(`Extend subscription for ${username} (days):`, '30');
+        if (!days || isNaN(days) || parseInt(days) <= 0) return;
+        
+        try {
+            const response = await fetch('/api/admin/renew_user', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + adminToken
+                },
+                body: JSON.stringify({
+                    username,
+                    days: parseInt(days)
+                })
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                showToast(`User ${username} renewed for ${days} days`, 'success');
+                loadDashboardData();
+            } else {
+                showToast(result.error || 'Failed to renew user', 'error');
+            }
+        } catch (error) {
+            showToast('Error: ' + error.message, 'error');
+        }
+    }
+    
+    // Delete user function
+    async function deleteUser(username) {
+        if (!confirm(`Are you sure you want to delete user ${username}?`)) return;
+        
+        try {
+            const response = await fetch('/api/admin/delete_user', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + adminToken
+                },
+                body: JSON.stringify({ username })
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                showToast(`User ${username} deleted successfully`, 'success');
+                loadDashboardData();
+            } else {
+                showToast(result.error || 'Failed to delete user', 'error');
+            }
+        } catch (error) {
+            showToast('Error: ' + error.message, 'error');
+        }
+    }
+    
+    // Export users
+    document.getElementById('exportUsers').addEventListener('click', async function() {
+        try {
+            const response = await fetch('/api/admin/export_users', {
+                headers: {
+                    'Authorization': 'Bearer ' + adminToken
+                }
+            });
+            
+            const result = await response.json();
+            if (result.success && result.data) {
+                const dataStr = JSON.stringify(result.data, null, 2);
+                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                
+                const exportFileDefaultName = 'users_export.json';
+                const linkElement = document.createElement('a');
+                linkElement.setAttribute('href', dataUri);
+                linkElement.setAttribute('download', exportFileDefaultName);
+                linkElement.click();
+                
+                showToast('Users exported successfully', 'success');
+            }
+        } catch (error) {
+            showToast('Error exporting users: ' + error.message, 'error');
+        }
+    });
+    
+    // Test API
+    document.getElementById('testAPI').addEventListener('click', async function() {
+        const btn = this;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+        
+        try {
+            const response = await fetch('/api/admin/test', {
+                headers: {
+                    'Authorization': 'Bearer ' + adminToken
+                }
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                showToast('API connection successful', 'success');
+            } else {
+                showToast('API test failed', 'error');
+            }
+        } catch (error) {
+            showToast('API error: ' + error.message, 'error');
+        } finally {
+            btn.innerHTML = originalText;
+        }
+    });
+    
+    // Server time update
+    function updateServerTime() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('id-ID', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        document.getElementById('serverTime').textContent = timeString;
+    }
+    
+    // Update time every second
+    setInterval(updateServerTime, 1000);
+    updateServerTime();
+    
+    // Auto-refresh data every 30 seconds
+    setInterval(() => {
+        if (adminToken) {
+            loadDashboardData();
+        }
+    }, 30000);
+    
+    // Toast notification function
+    function showToast(message, type = 'info') {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.className = 'toast ' + type;
+        toast.style.display = 'block';
+        
+        setTimeout(() => {
+            toast.style.display = 'none';
+        }, 3000);
+    }
+    
+    // Show error function
+    function showError(message) {
+        const errorDiv = document.getElementById('loginError');
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+    }
+});
