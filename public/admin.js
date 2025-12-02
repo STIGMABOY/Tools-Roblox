@@ -1,5 +1,5 @@
 // ============================================
-// ADMIN PANEL - SCRIPT (FIXED VERSION)
+// ADMIN PANEL - SCRIPT (FULL FIXED VERSION)
 // ============================================
 
 // Konfigurasi
@@ -26,7 +26,7 @@ let adminState = {
  * Initialize admin panel
  */
 async function initAdminPanel() {
-    console.log('Initializing Admin Panel...');
+    console.log('🚀 Initializing Admin Panel...');
     
     // Check if admin is logged in
     const token = localStorage.getItem(ADMIN_TOKEN_STORAGE_KEY);
@@ -68,11 +68,11 @@ function setupLoginButton() {
     
     if (loginBtn) {
         // Remove existing listeners
-        loginBtn.replaceWith(loginBtn.cloneNode(true));
-        const newLoginBtn = document.getElementById('adminLoginBtn');
+        const newLoginBtn = loginBtn.cloneNode(true);
+        loginBtn.parentNode.replaceChild(newLoginBtn, loginBtn);
         
-        // Add new listener
-        newLoginBtn.addEventListener('click', handleAdminLogin);
+        // Add new listener to new button
+        document.getElementById('adminLoginBtn').addEventListener('click', handleAdminLogin);
     }
     
     // Allow Enter key to login
@@ -89,7 +89,7 @@ function setupLoginButton() {
  * Initialize admin dashboard
  */
 async function initAdminDashboard() {
-    console.log('Initializing Admin Dashboard...');
+    console.log('📊 Initializing Admin Dashboard...');
     
     // Show dashboard
     const loginSection = document.getElementById('adminLogin');
@@ -98,21 +98,27 @@ async function initAdminDashboard() {
     if (loginSection) loginSection.style.display = 'none';
     if (dashboardSection) dashboardSection.style.display = 'block';
     
-    // Initialize UI
-    initAdminUI();
-    
-    // Load initial data
-    await loadDashboardData();
-    await loadUsers();
-    
-    // Setup event listeners
-    setupAdminEventListeners();
-    
-    // Start timers
-    startAdminTimers();
-    
-    // Show dashboard tab
-    switchTab('dashboard');
+    try {
+        // Initialize UI
+        initAdminUI();
+        
+        // Load initial data
+        await loadDashboardData();
+        await loadUsers();
+        
+        // Setup event listeners
+        setupAdminEventListeners();
+        
+        // Start timers
+        startAdminTimers();
+        
+        // Show dashboard tab
+        switchTab('dashboard');
+        
+    } catch (error) {
+        console.error('Error initializing dashboard:', error);
+        showToast('Failed to load dashboard', 'error');
+    }
 }
 
 /**
@@ -244,7 +250,7 @@ function startAdminTimers() {
 }
 
 // ============================================
-// API FUNCTIONS
+// API FUNCTIONS - FIXED VERSION
 // ============================================
 
 /**
@@ -254,7 +260,8 @@ async function adminApiRequest(method, endpoint, data = null) {
     const url = endpoint.startsWith('http') ? endpoint : endpoint;
     
     const headers = {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
     };
     
     // Add authorization header if token exists
@@ -264,7 +271,9 @@ async function adminApiRequest(method, endpoint, data = null) {
     
     const options = {
         method,
-        headers
+        headers,
+        mode: 'cors',
+        credentials: 'same-origin'
     };
     
     if (data && (method === 'POST' || method === 'PUT')) {
@@ -272,6 +281,8 @@ async function adminApiRequest(method, endpoint, data = null) {
     }
     
     try {
+        console.log(`📤 API Request: ${method} ${url}`);
+        
         const response = await fetch(url, options);
         
         // Handle 401 Unauthorized
@@ -281,22 +292,33 @@ async function adminApiRequest(method, endpoint, data = null) {
             throw new Error('Unauthorized');
         }
         
-        const result = await response.json();
+        // Get response text first
+        const responseText = await response.text();
+        console.log(`📥 API Response (${response.status}):`, responseText.substring(0, 200));
+        
+        let result;
+        try {
+            result = JSON.parse(responseText);
+        } catch (jsonError) {
+            console.error('❌ JSON Parse Error:', jsonError);
+            throw new Error(`Invalid JSON response: ${responseText.substring(0, 100)}`);
+        }
         
         if (!response.ok) {
-            throw new Error(result.error || `HTTP ${response.status}`);
+            const errorMsg = result.error || result.message || `HTTP ${response.status}`;
+            throw new Error(errorMsg);
         }
         
         return result;
         
     } catch (error) {
-        console.error('Admin API request failed:', error);
+        console.error('❌ API request failed:', error);
         throw error;
     }
 }
 
 /**
- * Handle admin login
+ * Handle admin login - FIXED VERSION
  */
 async function handleAdminLogin() {
     console.log('🔐 Admin login button clicked...');
@@ -315,13 +337,11 @@ async function handleAdminLogin() {
     loginBtn.disabled = true;
     
     try {
-        console.log('📤 Sending login request to:', `${ADMIN_API_BASE}/login`);
+        console.log('📤 Sending login request...');
+        console.log('Username:', username);
+        console.log('Password length:', password.length);
         
-        // Simpan base URL untuk debug
-        const baseUrl = window.location.origin;
-        console.log('Base URL:', baseUrl);
-        
-        const response = await fetch(`${ADMIN_API_BASE}/login`, {
+        const response = await fetch('/api/admin/login', {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
@@ -335,16 +355,19 @@ async function handleAdminLogin() {
         
         console.log('📥 Response status:', response.status, response.statusText);
         
-        // Cek jika response bukan JSON
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            const text = await response.text();
-            console.error('❌ Response is not JSON:', text.substring(0, 200));
-            throw new Error(`Server returned non-JSON: ${response.status} ${response.statusText}`);
-        }
+        // Get response as text first
+        const responseText = await response.text();
+        console.log('📥 Raw response:', responseText);
         
-        const result = await response.json();
-        console.log('✅ Response data:', result);
+        let result;
+        try {
+            result = JSON.parse(responseText);
+            console.log('✅ Parsed JSON:', result);
+        } catch (jsonError) {
+            console.error('❌ Failed to parse JSON:', jsonError);
+            console.error('Raw response was:', responseText);
+            throw new Error('Server returned invalid JSON');
+        }
         
         if (response.ok && result.success) {
             // Save token
@@ -352,7 +375,7 @@ async function handleAdminLogin() {
             adminState.token = result.token;
             
             // Show success message
-            showToast('🎉 Admin login successful!', 'success');
+            showToast('🎉 Admin login successful! Redirecting...', 'success');
             
             // Reload page after 1 second
             setTimeout(() => {
@@ -360,27 +383,36 @@ async function handleAdminLogin() {
             }, 1000);
             
         } else {
+            // Handle error response
             const errorMsg = result.error || result.message || 'Login failed';
             console.error('❌ Login failed:', errorMsg);
-            showToast(`Login failed: ${errorMsg}`, 'error');
+            
+            // Check if it's [object Object]
+            if (errorMsg === '[object Object]' && result.error) {
+                // Try to get error details
+                const errorDetails = JSON.stringify(result.error);
+                showToast(`Login failed: ${errorDetails}`, 'error');
+            } else {
+                showToast(`Login failed: ${errorMsg}`, 'error');
+            }
         }
         
     } catch (error) {
         console.error('❌ Login error:', error);
         
-        // Tampilkan error detail
         let errorMsg = error.message;
         if (error instanceof TypeError && error.message.includes('fetch')) {
-            errorMsg = 'Network error. Check API endpoint.';
+            errorMsg = 'Network error. Please check your connection.';
         }
         
         showToast(`Login error: ${errorMsg}`, 'error');
         
         // Debug info
         console.log('🔧 Debug info:');
-        console.log('- API Base:', ADMIN_API_BASE);
-        console.log('- Full URL:', window.location.origin + ADMIN_API_BASE + '/login');
-        console.log('- CORS headers should be set');
+        console.log('- Current URL:', window.location.href);
+        console.log('- API Endpoint:', '/api/admin/login');
+        console.log('- Full URL:', window.location.origin + '/api/admin/login');
+        
     } finally {
         loginBtn.innerHTML = originalText;
         loginBtn.disabled = false;
@@ -1071,25 +1103,85 @@ function hideToast() {
  * Test API connection
  */
 async function testApiConnection() {
-    console.log('Testing API connection...');
+    console.log('🔍 Testing API connection...');
     
     try {
         const response = await fetch('/api/admin/login', {
-            method: 'GET'
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            }
         });
         
-        console.log('API Response:', response);
+        console.log('📡 API Status:', response.status, response.statusText);
+        console.log('🌐 URL:', window.location.origin + '/api/admin/login');
         
-        if (response.ok) {
-            console.log('API is working!');
-            return true;
-        } else {
-            console.error('API returned error:', response.status);
-            return false;
-        }
+        const text = await response.text();
+        console.log('📄 Response (first 500 chars):', text.substring(0, 500));
+        
+        return response.ok;
+        
     } catch (error) {
-        console.error('API test failed:', error);
+        console.error('❌ API test failed:', error);
         return false;
+    }
+}
+
+// ============================================
+// SIMPLE LOGIN FALLBACK
+// ============================================
+
+/**
+ * Simple login fallback - if main login fails
+ */
+async function simpleAdminLogin() {
+    const username = document.getElementById('adminUsername')?.value.trim();
+    const password = document.getElementById('adminPassword')?.value;
+    
+    if (!username || !password) {
+        alert('Please enter username and password');
+        return;
+    }
+    
+    const btn = document.getElementById('adminLoginBtn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = 'Logging in...';
+    btn.disabled = true;
+    
+    try {
+        const response = await fetch('/api/admin/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+        
+        const text = await response.text();
+        console.log('Simple login response:', text);
+        
+        let result;
+        try {
+            result = JSON.parse(text);
+        } catch(e) {
+            alert('Server error: Invalid response format');
+            return;
+        }
+        
+        if (result.success) {
+            localStorage.setItem('robin_admin_token', result.token);
+            alert('Login successful!');
+            window.location.reload();
+        } else {
+            const errorMsg = typeof result.error === 'object' 
+                ? JSON.stringify(result.error) 
+                : result.error || 'Unknown error';
+            alert('Login failed: ' + errorMsg);
+        }
+        
+    } catch (error) {
+        alert('Network error: ' + error.message);
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
     }
 }
 
@@ -1099,17 +1191,22 @@ async function testApiConnection() {
 
 // Initialize admin panel when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Admin page loaded');
-    initAdminPanel();
+    console.log('🚀 Admin page loaded');
     
-    // Test API on load
+    // Test API connection on load
     setTimeout(() => {
         testApiConnection();
     }, 1000);
+    
+    // Initialize admin panel
+    initAdminPanel();
 });
 
 // Global functions untuk dipanggil dari inline onclick
 window.renewUser = renewUser;
 window.editUser = editUser;
 window.deleteUser = deleteUser;
+window.simpleAdminLogin = simpleAdminLogin;
 
+// Export untuk debugging
+window.adminState = adminState;
