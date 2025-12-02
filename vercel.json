@@ -22,39 +22,35 @@
       "use": "@vercel/static"
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/check",
-      "dest": "/api/check.py",
-      "methods": ["GET", "POST", "OPTIONS"]
+      "source": "/api/check",
+      "destination": "/api/check.py"
     },
     {
-      "src": "/api/check/(.*)",
-      "dest": "/api/check.py",
-      "methods": ["GET", "POST", "OPTIONS"]
+      "source": "/api/check/(.*)",
+      "destination": "/api/check.py"
     },
     {
-      "src": "/api/admin",
-      "dest": "/api/admin.py",
-      "methods": ["GET", "POST", "OPTIONS"]
+      "source": "/api/admin",
+      "destination": "/api/admin.py"
     },
     {
-      "src": "/api/admin/(.*)",
-      "dest": "/api/admin.py",
-      "methods": ["GET", "POST", "OPTIONS"]
+      "source": "/api/admin/(.*)",
+      "destination": "/api/admin.py"
     },
     {
-      "src": "/",
-      "dest": "/public/index.html"
+      "source": "/",
+      "destination": "/public/index.html"
     },
     {
-      "src": "/(.*)",
-      "dest": "/public/$1"
+      "source": "/(.*)",
+      "destination": "/public/$1"
     }
   ],
   "headers": [
     {
-      "source": "/(.*)",
+      "source": "/api/(.*)",
       "headers": [
         {
           "key": "Access-Control-Allow-Origin",
@@ -62,11 +58,11 @@
         },
         {
           "key": "Access-Control-Allow-Methods",
-          "value": "GET, POST, PUT, DELETE, OPTIONS"
+          "value": "GET, POST, OPTIONS"
         },
         {
           "key": "Access-Control-Allow-Headers",
-          "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization"
+          "value": "Content-Type, Authorization"
         }
       ]
     }
