@@ -299,7 +299,7 @@ async function adminApiRequest(method, endpoint, data = null) {
  * Handle admin login
  */
 async function handleAdminLogin() {
-    console.log('Admin login attempted...');
+    console.log('🔐 Admin login button clicked...');
     
     const username = document.getElementById('adminUsername')?.value.trim().toLowerCase();
     const password = document.getElementById('adminPassword')?.value;
@@ -315,7 +315,11 @@ async function handleAdminLogin() {
     loginBtn.disabled = true;
     
     try {
-        console.log('Sending login request...');
+        console.log('📤 Sending login request to:', `${ADMIN_API_BASE}/login`);
+        
+        // Simpan base URL untuk debug
+        const baseUrl = window.location.origin;
+        console.log('Base URL:', baseUrl);
         
         const response = await fetch(`${ADMIN_API_BASE}/login`, {
             method: 'POST',
@@ -329,32 +333,54 @@ async function handleAdminLogin() {
             })
         });
         
-        console.log('Response status:', response.status);
+        console.log('📥 Response status:', response.status, response.statusText);
+        
+        // Cek jika response bukan JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            console.error('❌ Response is not JSON:', text.substring(0, 200));
+            throw new Error(`Server returned non-JSON: ${response.status} ${response.statusText}`);
+        }
         
         const result = await response.json();
-        console.log('Response data:', result);
+        console.log('✅ Response data:', result);
         
-        if (result.success) {
+        if (response.ok && result.success) {
             // Save token
             localStorage.setItem(ADMIN_TOKEN_STORAGE_KEY, result.token);
             adminState.token = result.token;
             
             // Show success message
-            showToast('Admin login successful!', 'success');
+            showToast('🎉 Admin login successful!', 'success');
             
-            // Initialize dashboard
+            // Reload page after 1 second
             setTimeout(() => {
-                initAdminDashboard();
+                window.location.reload();
             }, 1000);
             
         } else {
-            showToast(result.error || 'Login failed', 'error');
-            console.error('Login failed:', result);
+            const errorMsg = result.error || result.message || 'Login failed';
+            console.error('❌ Login failed:', errorMsg);
+            showToast(`Login failed: ${errorMsg}`, 'error');
         }
         
     } catch (error) {
-        console.error('Login error:', error);
-        showToast('Login failed: ' + error.message, 'error');
+        console.error('❌ Login error:', error);
+        
+        // Tampilkan error detail
+        let errorMsg = error.message;
+        if (error instanceof TypeError && error.message.includes('fetch')) {
+            errorMsg = 'Network error. Check API endpoint.';
+        }
+        
+        showToast(`Login error: ${errorMsg}`, 'error');
+        
+        // Debug info
+        console.log('🔧 Debug info:');
+        console.log('- API Base:', ADMIN_API_BASE);
+        console.log('- Full URL:', window.location.origin + ADMIN_API_BASE + '/login');
+        console.log('- CORS headers should be set');
     } finally {
         loginBtn.innerHTML = originalText;
         loginBtn.disabled = false;
@@ -1086,3 +1112,4 @@ document.addEventListener('DOMContentLoaded', function() {
 window.renewUser = renewUser;
 window.editUser = editUser;
 window.deleteUser = deleteUser;
+
