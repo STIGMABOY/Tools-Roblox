@@ -6,58 +6,152 @@
     <title>Admin Panel - Robin Cookie Checker</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Additional styles for admin panel */
+        .admin-action-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-action {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .btn-renew {
+            background: rgba(46, 204, 113, 0.2);
+            color: #2ecc71;
+            border: 1px solid rgba(46, 204, 113, 0.3);
+        }
+        
+        .btn-edit {
+            background: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+            border: 1px solid rgba(52, 152, 219, 0.3);
+        }
+        
+        .btn-delete {
+            background: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+            border: 1px solid rgba(231, 76, 60, 0.3);
+        }
+        
+        .btn-action:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        
+        .status-active {
+            background: rgba(46, 204, 113, 0.2);
+            color: #2ecc71;
+            border: 1px solid rgba(46, 204, 113, 0.3);
+        }
+        
+        .status-expired {
+            background: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+            border: 1px solid rgba(231, 76, 60, 0.3);
+        }
+        
+        .plan-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        
+        .plan-basic {
+            background: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+            border: 1px solid rgba(52, 152, 219, 0.3);
+        }
+        
+        .plan-premium {
+            background: rgba(46, 204, 113, 0.2);
+            color: #2ecc71;
+            border: 1px solid rgba(46, 204, 113, 0.3);
+        }
+        
+        .plan-ultimate {
+            background: rgba(155, 89, 182, 0.2);
+            color: #9b59b6;
+            border: 1px solid rgba(155, 89, 182, 0.3);
+        }
+        
+        .user-actions {
+            display: flex;
+            gap: 6px;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-<!-- Admin Login Section -->
-<div id="adminLogin" class="login-container">
-    <div class="login-box admin-login-box">
-        <div class="logo">
-            <div class="logo-icon admin-logo">
-                <i class="fas fa-user-shield"></i>
-            </div>
-            <h1>Admin Control Panel</h1>
-            <p class="tagline">Robin Cookie Checker Management System</p>
-        </div>
-        
-        <div class="login-form">
-            <div class="form-group">
-                <label for="adminUsername">
-                    <i class="fas fa-user-cog"></i> Admin Username
-                </label>
-                <input type="text" id="adminUsername" placeholder="admin" value="admin">
-            </div>
-            
-            <div class="form-group">
-                <label for="adminPassword">
-                    <i class="fas fa-key"></i> Admin Password
-                </label>
-                <input type="password" id="adminPassword" placeholder="Masukkan password admin">
-            </div>
-            
-            <button id="adminLoginBtn" class="btn-login admin-login-btn">
-                <i class="fas fa-sign-in-alt"></i> Login sebagai Administrator
-            </button>
-            
-            <div class="admin-login-footer">
-                <div class="warning-note">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p><strong>WARNING:</strong> This panel is for system owners only. Do not share access!</p>
+        <!-- Admin Login -->
+        <div id="adminLogin" class="login-container">
+            <div class="login-box admin-login-box">
+                <div class="logo">
+                    <div class="logo-icon admin-logo">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <h1>Admin Control Panel</h1>
+                    <p class="tagline">Robin Cookie Checker Management System</p>
                 </div>
                 
-                <div class="portal-links">
-                    <a href="/index.html" class="portal-link user-portal">
-                        <i class="fas fa-external-link-alt"></i> Go to User Portal
-                    </a>
-                    <a href="/dashboard.html" class="portal-link dashboard-portal">
-                        <i class="fas fa-tachometer-alt"></i> Go to Dashboard
-                    </a>
+                <div class="login-form">
+                    <div class="form-group">
+                        <label for="adminUsername">
+                            <i class="fas fa-user-cog"></i> Admin Username
+                        </label>
+                        <input type="text" id="adminUsername" placeholder="admin" value="admin">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="adminPassword">
+                            <i class="fas fa-key"></i> Admin Password
+                        </label>
+                        <input type="password" id="adminPassword" placeholder="Masukkan password admin">
+                    </div>
+                    
+                    <button id="adminLoginBtn" class="btn-login admin-login-btn">
+                        <i class="fas fa-sign-in-alt"></i> Login sebagai Administrator
+                    </button>
+                    
+                    <div class="admin-login-footer">
+                        <div class="warning-note">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p><strong>WARNING:</strong> This panel is for system owners only. Do not share access!</p>
+                        </div>
+                        
+                        <div class="portal-links">
+                            <a href="/index.html" class="portal-link user-portal">
+                                <i class="fas fa-external-link-alt"></i> Go to User Portal
+                            </a>
+                            <a href="/dashboard.html" class="portal-link dashboard-portal">
+                                <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</div>
-        
+
         <!-- Admin Dashboard -->
         <div id="adminDashboard" class="admin-container" style="display: none;">
             <!-- Admin Header -->
@@ -560,7 +654,197 @@
         </div>
     </div>
 
+    <!-- Main Admin JS -->
     <script src="admin.js"></script>
+    
+    <!-- Emergency Login Fix -->
+    <script>
+    // Emergency login handler - fallback if main script fails
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🛠️ Emergency login script loaded');
+        
+        const loginBtn = document.getElementById('adminLoginBtn');
+        if (!loginBtn) {
+            console.error('❌ Login button not found');
+            return;
+        }
+        
+        // Add emergency login handler
+        loginBtn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            console.log('🚨 Emergency login triggered');
+            
+            const username = document.getElementById('adminUsername').value.trim();
+            const password = document.getElementById('adminPassword').value;
+            
+            if (!username || !password) {
+                alert('Please enter username and password');
+                return;
+            }
+            
+            const btn = this;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+            btn.disabled = true;
+            
+            try {
+                console.log('📤 Sending emergency login request...');
+                
+                const response = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        username: username, 
+                        password: password 
+                    })
+                });
+                
+                console.log('📥 Response status:', response.status);
+                
+                // Get raw response text
+                const responseText = await response.text();
+                console.log('📥 Raw response:', responseText);
+                
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                    console.log('✅ Parsed result:', result);
+                } catch (jsonError) {
+                    console.error('❌ JSON parse error:', jsonError);
+                    alert('Server error: Invalid response format');
+                    return;
+                }
+                
+                if (response.ok && result.success) {
+                    // Save token
+                    localStorage.setItem('robin_admin_token', result.token);
+                    
+                    // Show success
+                    alert('✅ Login successful! Redirecting...');
+                    
+                    // Reload page
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                    
+                } else {
+                    // Handle error
+                    let errorMsg = 'Unknown error';
+                    
+                    if (result.error) {
+                        if (typeof result.error === 'string') {
+                            errorMsg = result.error;
+                        } else if (typeof result.error === 'object') {
+                            errorMsg = JSON.stringify(result.error);
+                        } else {
+                            errorMsg = String(result.error);
+                        }
+                    } else if (result.message) {
+                        errorMsg = result.message;
+                    }
+                    
+                    console.error('❌ Login failed:', errorMsg);
+                    alert('Login failed: ' + errorMsg);
+                }
+                
+            } catch (error) {
+                console.error('❌ Network error:', error);
+                alert('Network error: ' + error.message);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
+        
+        // Also add Enter key support
+        const passwordInput = document.getElementById('adminPassword');
+        if (passwordInput) {
+            passwordInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    loginBtn.click();
+                }
+            });
+        }
+        
+        console.log('✅ Emergency login script ready');
+    });
+    </script>
+    
+    <!-- Debug Script -->
+    <script>
+    // Debug functions for console
+    window.debugAdmin = {
+        testLogin: async function() {
+            console.log('🔍 Testing admin login...');
+            
+            try {
+                const response = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: 'admin',
+                        password: 'admin12345'
+                    })
+                });
+                
+                console.log('Status:', response.status);
+                console.log('OK:', response.ok);
+                
+                const text = await response.text();
+                console.log('Response text:', text);
+                
+                try {
+                    const json = JSON.parse(text);
+                    console.log('Parsed JSON:', json);
+                    return json;
+                } catch(e) {
+                    console.log('Not JSON:', e.message);
+                    return text;
+                }
+                
+            } catch(error) {
+                console.error('Error:', error);
+                return error;
+            }
+        },
+        
+        checkAPI: async function() {
+            console.log('🔍 Checking API endpoint...');
+            
+            try {
+                const response = await fetch('/api/admin/login', {
+                    method: 'GET'
+                });
+                
+                console.log('GET Status:', response.status);
+                const text = await response.text();
+                console.log('GET Response:', text.substring(0, 200));
+                return response.ok;
+                
+            } catch(error) {
+                console.error('API check failed:', error);
+                return false;
+            }
+        },
+        
+        clearToken: function() {
+            localStorage.removeItem('robin_admin_token');
+            console.log('🗑️ Token cleared');
+            alert('Token cleared. Reloading...');
+            window.location.reload();
+        },
+        
+        showToken: function() {
+            const token = localStorage.getItem('robin_admin_token');
+            console.log('🔑 Current token:', token);
+            return token;
+        }
+    };
+    
+    console.log('🛠️ Debug functions loaded. Use debugAdmin.testLogin() to test');
+    </script>
 </body>
-
 </html>
